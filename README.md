@@ -22,7 +22,7 @@ A modern React/Next.js web application featuring AI chat integration with Google
 
 Here is a screenshot of the application's chat interface.
 
-![AI Chat Application Preview](public\chat_screenshot.png)
+![AI Chat Application Preview](/public/chat_screenshot.png)
 
 ## 🛠️ Tech Stack
 
