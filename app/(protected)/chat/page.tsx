@@ -5,7 +5,7 @@ import { useChat } from '@ai-sdk/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Mic, MicOff } from 'lucide-react';
 
 export default function ChatPage() {
   const { authState } = useAuth();
@@ -15,6 +15,8 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recognition, setRecognition] = useState<any>(null);
 
   const { messages, sendMessage, status } = useChat();
   const isLoading = status === 'streaming';
@@ -26,6 +28,40 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      
+      if (SpeechRecognition) {
+        const recognitionInstance = new SpeechRecognition();
+        recognitionInstance.continuous = false;
+        recognitionInstance.interimResults = false;
+        recognitionInstance.lang = 'en-US';
+
+        recognitionInstance.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setInput((prev) => prev + (prev ? ' ' : '') + transcript);
+          setIsRecording(false);
+        };
+
+        recognitionInstance.onerror = (event: any) => {
+          console.error('Speech recognition error:', event.error);
+          setIsRecording(false);
+          if (event.error === 'not-allowed') {
+            alert('Microphone access denied. Please allow microphone access in your browser settings.');
+          }
+        };
+
+        recognitionInstance.onend = () => {
+          setIsRecording(false);
+        };
+
+        setRecognition(recognitionInstance);
+      }
+    }
+  }, []);
 
   // Cleanup preview URL when component unmounts or file changes
   useEffect(() => {
@@ -71,6 +107,21 @@ export default function ChatPage() {
     setPreviewUrl('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+  };
+
+  const toggleRecording = () => {
+    if (!recognition) {
+      alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
+      return;
+    }
+
+    if (isRecording) {
+      recognition.stop();
+      setIsRecording(false);
+    } else {
+      recognition.start();
+      setIsRecording(true);
     }
   };
 
@@ -184,10 +235,23 @@ export default function ChatPage() {
           >
             {selectedFile ? <ImageIcon size={20} className="text-blue-600" /> : <Upload size={20} />}
           </button>
+          <button
+            type="button"
+            onClick={toggleRecording}
+            className={`p-2 rounded-md transition-colors ${
+              isRecording
+                ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                : 'text-gray-600 hover:bg-gray-200'
+            }`}
+            disabled={isLoading}
+            title={isRecording ? 'Stop recording' : 'Start recording'}
+          >
+            {isRecording ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Say something..."
+            placeholder={isRecording ? 'Listening...' : 'Say something...'}
             className="flex-1 rounded-md border border-gray-300 p-2 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={isLoading}
           />
