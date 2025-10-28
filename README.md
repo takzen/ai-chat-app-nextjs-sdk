@@ -8,15 +8,14 @@ A modern React/Next.js web application featuring AI chat integration with Google
 - **Authentication System** - Mock login with hardcoded credentials
 - **AI Chat Integration** - Powered by Google Gemini 2.5 Flash
 - **Real-time Message Streaming** - See AI responses appear word by word
-- **File Attachments** - Support for images, PDFs, and documents
+- **Image Attachments** - Support for JPEG, PNG, GIF, WebP images
 - **Speech-to-Text** - Voice input using Web Speech API
 - **User Profile Management** - Edit name and profile picture
 - **Responsive Design** - Clean, modern UI with Tailwind CSS
 - **Navigation** - Seamless routing between Chat and Profile pages
 
-### 📁 Supported File Types
-- Images: JPEG, PNG, GIF, WebP
-- Documents: PDF, TXT, DOC, DOCX
+### 🖼️ Supported File Types
+- Images: JPEG, PNG, GIF, WebP (max 5MB)
 
 ## 🖼️ Application Preview
 
@@ -29,7 +28,8 @@ Here is a screenshot of the application's chat interface.
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **AI Integration**: Varcel AI SDK
+- **AI Integration**: Vercel AI SDK v5
+- **AI Model**: Google Gemini 2.5 Flash
 - **Icons**: Lucide React
 - **Runtime**: Edge Runtime for API routes
 
@@ -38,7 +38,7 @@ Here is a screenshot of the application's chat interface.
 Before you begin, ensure you have the following installed:
 - Node.js (v18 or higher)
 - npm or yarn
-- A Google AI API key (get it from [Google AI Studio](https://makersuite.google.com/app/apikey))
+- A Google AI API key (get it from [Google AI Studio](https://aistudio.google.com/app/apikey))
 
 ## ⚙️ Installation & Setup
 
@@ -46,8 +46,8 @@ Before you begin, ensure you have the following installed:
 
 If you received a Git bundle:
 ```bash
-git clone ai-chat-app.bundle ai-chat-app-sdk
-cd ai-chat-app-sdk 
+git clone ai-chat-app.bundle ai-chat-app
+cd ai-chat-app
 ```
 
 ### 2. Install dependencies
@@ -74,7 +74,7 @@ npm run dev
 
 The application will be available at [http://localhost:3000](http://localhost:3000)
 
-## 🔑 Login Credentials
+## 🔐 Login Credentials
 
 Use these hardcoded credentials to log in:
 
@@ -85,9 +85,10 @@ Use these hardcoded credentials to log in:
 
 ### Chat Page
 1. **Send Text Messages**: Type your message and press Enter or click Send
-2. **Attach Files**: Click the paperclip icon to attach images or documents
-3. **Voice Input**: Click the microphone icon to use speech-to-text (requires browser support)
+2. **Attach Images**: Click the upload icon to attach images (JPEG, PNG, GIF, WebP)
+3. **Voice Input**: Click the microphone icon to use speech-to-text
 4. **View Responses**: AI responses stream in real-time
+5. **Image Analysis**: Attach an image and ask questions about it
 
 ### Profile Page
 1. **View Profile**: See your name, email, and profile picture
@@ -99,7 +100,7 @@ Use these hardcoded credentials to log in:
 - Use the top navbar to switch between Chat and Profile pages
 - Click "Logout" to return to the login screen
 
-## 🏗️ Project Structure
+## 🗂️ Project Structure
 
 ```
 ai-chat-app/
@@ -120,7 +121,7 @@ ai-chat-app/
 │   ├── layout.tsx                # Root layout
 │   ├── page.tsx                  # Login page
 │   └── globals.css               # Global styles
-├── .env.local                     # Environment variables (create this)
+├── .env.local                    # Environment variables (create this)
 ├── package.json
 ├── tsconfig.json
 └── README.md
@@ -135,9 +136,10 @@ ai-chat-app/
 
 ### Test Chat Features
 1. Send a text message and verify AI response
-2. Attach an image and ask about it
-3. Use voice input (Chrome/Edge only)
-4. Try different file types (PDF, TXT)
+2. Attach an image and ask questions about it
+3. Use voice input (Chrome, Edge, or Safari)
+4. Test image preview and removal before sending
+5. Verify message streaming works correctly
 
 ### Test Profile Management
 1. Navigate to Profile page
@@ -148,26 +150,35 @@ ai-chat-app/
 ## 🌐 Browser Compatibility
 
 - **Fully Supported**: Chrome, Edge, Safari (latest versions)
-- **Speech-to-Text**: Chrome and Edge only (uses Web Speech API)
+- **Speech-to-Text**: Chrome, Edge, and Safari (uses Web Speech API)
 - **File Upload**: All modern browsers
+- **Not Supported**: Firefox (no Web Speech API support)
 
 ## 🔧 Troubleshooting
 
 ### API Key Issues
-**Error**: "API key not configured"
+**Error**: "Google Generative AI API key is missing"
 - Ensure `.env.local` exists in the root directory
 - Verify `GOOGLE_GENERATIVE_AI_API_KEY` is set correctly
 - Restart the development server after adding the key
 
 ### Speech-to-Text Not Working
-- Check browser compatibility (use Chrome or Edge)
+- Check browser compatibility (use Chrome, Edge, or Safari)
 - Allow microphone permissions when prompted
 - Check browser console for specific errors
+- Firefox is not supported
 
 ### File Upload Issues
-- Verify file type is supported
-- Check file size (large files may cause delays)
-- Ensure proper MIME type
+- Only image files are supported (JPEG, PNG, GIF, WebP)
+- Maximum file size is 5MB
+- Ensure file is a valid image format
+- Check browser console for validation errors
+
+### AI Response Issues
+- Verify your Google AI API key is valid
+- Check API quota limits in Google AI Studio
+- Ensure stable internet connection
+- Check browser console for API errors
 
 ## 📦 Building for Production
 
@@ -181,18 +192,34 @@ npm start
 ### Change AI Model
 Edit `app/api/chat/route.ts`:
 ```typescript
-const model = genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
+model: google('gemini-2.5-pro')
 ```
 
+Available models:
+- `gemini-2.5-flash` (default - fast and efficient)
+- `gemini-2.5-pro` (more capable, slower)
+
+
 ### Change Speech Language
-Edit `app/chat/page.tsx`:
+Edit `app/(protected)/chat/page.tsx`:
 ```typescript
-recognitionRef.current.lang = 'pl-PL'; // For Polish
+recognitionInstance.lang = 'pl-PL'; // For Polish
+recognitionInstance.lang = 'es-ES'; // For Spanish
+recognitionInstance.lang = 'fr-FR'; // For French
 ```
 
 ### Modify Styling
 - Global styles: `app/globals.css`
 - Tailwind config: `tailwind.config.ts`
+- Component styles: Inline Tailwind classes
+
+### Add More File Types
+Edit `app/(protected)/chat/page.tsx` in `handleFileSelect`:
+```typescript
+const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+```
+
+Note: Additional file types may require backend processing.
 
 ## 📝 Notes
 
@@ -200,15 +227,20 @@ recognitionRef.current.lang = 'pl-PL'; // For Polish
 - Profile data is persisted in browser localStorage
 - The application uses Edge Runtime for optimal performance
 - Authentication is mocked for demonstration purposes
+- Files are converted to base64 data URLs for transmission
+- Maximum file size is 5MB to prevent performance issues
 
 ## 🤝 Development
 
 This project was created as a recruitment task demonstrating:
-- Modern React/Next.js development practices
-- AI integration with streaming responses
-- File handling and multimodal AI interactions
-- State management and routing
+- Modern React/Next.js 16 development practices
+- AI SDK v5 integration with streaming responses
+- Multimodal AI interactions (text + images)
+- File handling with base64 encoding
+- Web Speech API integration
+- State management with React Context
 - Clean, maintainable code structure
+- TypeScript best practices
 
 ## 📄 License
 
@@ -221,6 +253,14 @@ For issues or questions:
 2. Verify all prerequisites are met
 3. Ensure environment variables are configured correctly
 4. Check browser console for detailed error messages
+5. Verify your Google AI API key has sufficient quota
+
+## 🔗 Useful Links
+
+- [Vercel AI SDK Documentation](https://sdk.vercel.ai/docs)
+- [Google AI Studio](https://aistudio.google.com/)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 
 ---
 
