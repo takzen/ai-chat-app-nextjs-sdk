@@ -41,7 +41,7 @@ Before you begin, ensure you have the following installed:
 If you received a Git bundle:
 ```bash
 git clone ai-chat-app.bundle ai-chat-app-sdk
-cd ai-chat-app-sdk
+cd ai-chat-app-sdk 
 ```
 
 ### 2. Install dependencies
