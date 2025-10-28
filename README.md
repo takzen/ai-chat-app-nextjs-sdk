@@ -18,6 +18,12 @@ A modern React/Next.js web application featuring AI chat integration with Google
 - Images: JPEG, PNG, GIF, WebP
 - Documents: PDF, TXT, DOC, DOCX
 
+## 🖼️ Application Preview
+
+Here is a screenshot of the application's chat interface.
+
+![AI Chat Application Preview](public\chat_screenshot.png)
+
 ## 🛠️ Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
